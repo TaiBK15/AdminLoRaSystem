@@ -1,5 +1,6 @@
 package com.example.myadminbklorasystem;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,6 +9,8 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         mAuth = FirebaseAuth.getInstance();
 
         edt_email = findViewById(R.id.edt_email);
@@ -40,17 +44,26 @@ public class MainActivity extends AppCompatActivity {
         btn_signup = findViewById(R.id.btn_signup);
         progressBar = findViewById(R.id.progressBar);
 
+
         btn_signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
                 registerNewUser();
+                edt_email.setText("");
+                edt_password.setText("");
+                edt_verify_password.setText("");
             }
         });
     }
 
-    private void registerNewUser(){
-        progressBar.setVisibility(View.VISIBLE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        closeKeyboard();
+    }
 
+    private void registerNewUser(){
         email = edt_email.getText().toString();
         password = edt_password.getText().toString();
         verify_password = edt_verify_password.getText().toString();
@@ -81,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (task.isSuccessful()) {
                                     Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                                     progressBar.setVisibility(View.GONE);
+                                    reloadActivity();
 
                                 }
                                 else {
@@ -94,5 +108,19 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Set up password fail! Please try again", Toast.LENGTH_LONG).show();
             progressBar.setVisibility(View.GONE);}
 
+        closeKeyboard();
+    }
+
+    private void reloadActivity(){
+        finish();
+        startActivity(getIntent());
+    }
+
+    private void closeKeyboard(){
+        View view = this.getCurrentFocus();
+        if(view != null){
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
